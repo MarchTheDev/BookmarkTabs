@@ -1,0 +1,313 @@
+/* Slim top strip that hosts the bookmark button */
+.vc-bookmarktabs-strip {
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+    height: 34px;
+    padding: 0 10px;
+    background: transparent;
+}
+
+.vc-bookmarktabs-strip-left {
+    justify-content: flex-start;
+}
+
+.vc-bookmarktabs-strip-right {
+    justify-content: flex-end;
+}
+
+/* The star button */
+.vc-bookmarktabs-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: none;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--interactive-normal);
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.vc-bookmarktabs-button:hover {
+    background: var(--background-modifier-hover);
+    color: var(--interactive-hover);
+}
+
+.vc-bookmarktabs-button:active {
+    background: var(--background-modifier-active);
+}
+
+.vc-bookmarktabs-button-active,
+.vc-bookmarktabs-button-active:hover {
+    color: var(--text-warning);
+}
+
+/* Popout positioning wrapper */
+.vc-bookmarktabs-popout-anchor {
+    position: fixed;
+    z-index: 1000;
+}
+
+/* The popout itself */
+.vc-bookmarktabs-popout {
+    display: flex;
+    flex-direction: column;
+    width: 320px;
+    max-height: min(480px, calc(100vh - 60px));
+    background: var(--background-floating);
+    border: 1px solid var(--background-modifier-accent);
+    border-radius: 8px;
+    box-shadow: var(--elevation-high);
+    overflow: hidden;
+}
+
+.vc-bookmarktabs-popout-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 12px 8px;
+}
+
+.vc-bookmarktabs-popout-title {
+    color: var(--header-primary);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 18px;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.vc-bookmarktabs-popout-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border: none;
+    border-radius: 5px;
+    background: transparent;
+    color: var(--interactive-normal);
+    cursor: pointer;
+}
+
+.vc-bookmarktabs-popout-close:hover {
+    background: var(--background-modifier-selected);
+    color: var(--interactive-hover);
+}
+
+/* "Bookmark this view" action */
+.vc-bookmarktabs-popout-current {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 8px 8px;
+    padding: 8px 10px;
+    border: none;
+    border-radius: 6px;
+    background: var(--brand-experiment);
+    color: #fff;
+    cursor: pointer;
+    text-align: left;
+}
+
+.vc-bookmarktabs-popout-current:hover {
+    background: var(--brand-experiment-560);
+}
+
+.vc-bookmarktabs-popout-current-active,
+.vc-bookmarktabs-popout-current-active:hover {
+    background: var(--background-secondary);
+    color: var(--text-muted);
+}
+
+.vc-bookmarktabs-popout-current-icon {
+    display: flex;
+    flex: 0 0 auto;
+}
+
+.vc-bookmarktabs-popout-current-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 1px;
+}
+
+.vc-bookmarktabs-popout-current-label {
+    font-size: 11px;
+    line-height: 14px;
+    opacity: 0.8;
+}
+
+.vc-bookmarktabs-popout-current-name {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 18px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Bookmark list */
+.vc-bookmarktabs-popout-list {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    gap: 1px;
+    min-height: 0;
+    padding: 0 8px 8px;
+    overflow-y: auto;
+}
+
+.vc-bookmarktabs-popout-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.vc-bookmarktabs-popout-list::-webkit-scrollbar-thumb {
+    background: var(--background-modifier-accent);
+    border-radius: 4px;
+}
+
+.vc-bookmarktabs-popout-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 24px 16px;
+    color: var(--text-muted);
+    font-size: 13px;
+    line-height: 18px;
+    text-align: center;
+}
+
+.vc-bookmarktabs-popout-empty p {
+    margin: 0;
+}
+
+/* A single bookmark row */
+.vc-bookmarktabs-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 8px;
+    border-radius: 6px;
+    color: var(--text-normal);
+    cursor: pointer;
+}
+
+.vc-bookmarktabs-row:hover {
+    background: var(--background-modifier-hover);
+}
+
+.vc-bookmarktabs-row-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 20px;
+    height: 20px;
+    color: var(--interactive-normal);
+}
+
+.vc-bookmarktabs-page-icon {
+    color: var(--interactive-normal);
+}
+
+.vc-bookmarktabs-guild-img {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    object-fit: cover;
+}
+
+.vc-bookmarktabs-guild-fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    background: var(--background-modifier-selected);
+    color: var(--text-muted);
+    font-size: 9px;
+    font-weight: 700;
+    line-height: 20px;
+}
+
+.vc-bookmarktabs-row-name {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 14px;
+    line-height: 18px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Hover actions (rename / delete) */
+.vc-bookmarktabs-row-actions {
+    display: flex;
+    flex: 0 0 auto;
+    gap: 2px;
+    opacity: 0;
+    transition: opacity 0.12s ease;
+}
+
+.vc-bookmarktabs-row:hover .vc-bookmarktabs-row-actions,
+.vc-bookmarktabs-row:focus-within .vc-bookmarktabs-row-actions {
+    opacity: 1;
+}
+
+.vc-bookmarktabs-row-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border: none;
+    border-radius: 5px;
+    background: transparent;
+    color: var(--interactive-normal);
+    cursor: pointer;
+}
+
+.vc-bookmarktabs-row-action:hover {
+    background: var(--background-modifier-selected);
+    color: var(--interactive-hover);
+}
+
+.vc-bookmarktabs-row-action-danger:hover {
+    color: var(--status-danger);
+}
+
+/* Inline rename input */
+.vc-bookmarktabs-row-editing {
+    cursor: default;
+}
+
+.vc-bookmarktabs-row-input {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin-left: 30px;
+    padding: 3px 6px;
+    border: 1px solid var(--brand-experiment);
+    border-radius: 4px;
+    background: var(--input-background);
+    color: var(--text-normal);
+    font-size: 14px;
+    line-height: 18px;
+    outline: none;
+}
+
+/* Footer hint */
+.vc-bookmarktabs-popout-footer {
+    padding: 6px 12px 8px;
+    border-top: 1px solid var(--background-modifier-accent);
+    color: var(--text-muted);
+    font-size: 11px;
+    line-height: 14px;
+    text-align: center;
+}
