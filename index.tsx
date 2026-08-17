@@ -17,7 +17,7 @@ import * as BookmarkTabsUtils from "./util";
 import { settings, STRIP_HEIGHT } from "./util/constants";
 
 // Put your own name here (the id is your Discord user id as a BigInt)
-const BookmarkTabsAuthor = { name: "MarchTheDev", id: 0n } as const;
+const BookmarkTabsAuthor = { name: "TheMarch88", id: 0n } as const;
 
 // Same anchor as the ChannelTabs plugin, but with a coexistence strategy:
 // if ChannelTabs is enabled it has already replaced the AppView container div,
