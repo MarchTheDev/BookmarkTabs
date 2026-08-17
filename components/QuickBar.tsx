@@ -4,11 +4,12 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+import { isPluginEnabled } from "@api/PluginManager";
 import { classNameFactory } from "@utils/css";
 import { classes } from "@utils/misc";
 import { useForceUpdater } from "@utils/react";
 import { FluxDispatcher, Tooltip, useEffect, useRef, useState } from "@webpack/common";
-import type { PointerEvent as ReactPointerEvent } from "react";
+import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react";
 
 import { settings } from "../util/constants";
 import { StarFilledIcon, StarIcon } from "../util/icons";
@@ -122,7 +123,7 @@ function QuickBarChip({ bookmark, editing, startRename, stopRename, dragging, on
  * needing a DndProvider — which is also why it can't silently crash.
  */
 export default function QuickBar() {
-    const { quickBar, starPosition } = settings.use(["quickBar", "starPosition"]);
+    const { quickBar, barHeight, starPosition } = settings.use(["quickBar", "barHeight", "starPosition"]);
 
     const bookmarks = useBookmarks();
     const view = getCurrentViewSafe();
@@ -214,6 +215,15 @@ export default function QuickBar() {
 
     if (!quickBar) return null;
 
+    // ChannelTabs' top bar lives in the same grid row ("notice" area) as
+    // this bar; don't double-stack when it's positioned at the top
+    try {
+        if (isPluginEnabled("ChannelTabs")) {
+            const ct = Vencord.Plugins.plugins.ChannelTabs as any;
+            if (ct?.util?.settings?.store?.tabBarPosition === "top") return null;
+        }
+    } catch { /* ignore */ }
+
     const starChip = view ? (
         <div className={classes(cl("bar-star"), starPosition === "right" ? cl("bar-star-right") : cl("bar-star-left"))}>
             <Tooltip text={bookmarked ? "Remove bookmark for this view" : "Bookmark this view"}>
@@ -233,7 +243,7 @@ export default function QuickBar() {
     ) : null;
 
     return (
-        <div className={cl("bar")}>
+        <div className={cl("bar")} style={{ "--bt-bar-height": `${barHeight}px` } as CSSProperties}>
             {starPosition !== "right" && starChip}
             <div className={cl("bar-scroller")} ref={scrollerRef}>
                 {bookmarks.map((bookmark, index) => (

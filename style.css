@@ -1,21 +1,25 @@
 /* ===== Bookmarks bar =====
-   Rendered inside the chat view, directly below the channel header.
-   The bar itself has NO background of its own — it inherits whatever the
-   theme paints the chat area with — and only draws the same thin hairline
-   Discord's header uses, so it reads as part of the header area on any
-   theme. Chips are fully theme-variable driven. */
+   Rendered as the first child of Discord's content subgrid and placed in
+   the row directly below the title bar (Discord's own "notice" grid area —
+   the same slot ChannelTabs' top bar uses). The bar itself has no
+   background: it inherits the theme's chat background, and only draws the
+   same thin hairline Discord uses, so it reads as part of the header area
+   on any theme. Height is driven by the barHeight setting
+   (--bt-bar-height) and defaults to 40px. */
 
 .vc-bookmarktabs-bar {
+    grid-area: notice;
     display: flex;
     align-items: center;
     flex: none;
-    width: 100%;
-    height: 38px;
+    min-width: 0;
+    height: var(--bt-bar-height, 40px);
     padding: 0 8px;
     box-sizing: border-box;
     background: transparent;
     box-shadow: inset 0 -1px 0 var(--background-base-low, rgba(0, 0, 0, 0.3));
     -webkit-app-region: no-drag;
+    z-index: 101;
 }
 
 .vc-bookmarktabs-bar-scroller {
@@ -57,7 +61,7 @@
     align-items: center;
     gap: 6px;
     flex: 0 0 auto;
-    height: 28px;
+    height: calc(var(--bt-bar-height, 40px) - 12px);
     padding: 0 10px;
     border: 1px solid var(--background-mod-muted, rgba(255, 255, 255, 0.1));
     border-radius: 12px;

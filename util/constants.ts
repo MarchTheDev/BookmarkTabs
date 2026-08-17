@@ -54,8 +54,15 @@ export function getSpecialPage(path: string): SpecialPage | undefined {
 export const settings = definePluginSettings({
     quickBar: {
         type: OptionType.BOOLEAN,
-        description: "Show the bookmarks bar at the top of the chat, right below the channel header",
+        description: "Show the bookmarks bar at the top, right below the title bar",
         default: true
+    },
+    barHeight: {
+        type: OptionType.SLIDER,
+        description: "Bookmarks bar height (pixels)",
+        markers: [28, 32, 36, 40, 44, 48, 56, 64],
+        default: 40,
+        stickToMarkers: false
     },
     starPosition: {
         type: OptionType.SELECT,

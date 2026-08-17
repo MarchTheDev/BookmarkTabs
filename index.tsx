@@ -14,19 +14,33 @@ import QuickBar from "./components/QuickBar";
 import * as BookmarkTabsUtils from "./util";
 import { settings } from "./util/constants";
 
-// Put your own name here (the id is your Discord user id as a BigInt)
-const BookmarkTabsAuthor = { name: "TheMarch88", id: 0n } as const;
+/**
+ * BookmarkTabs — author info
+ * @author TheMarch88
+ * GitHub: https://github.com/MarchTheDev
+ * (This Equicord version's plugin cards only render name + id, so the
+ * GitHub link is kept here as documentation.)
+ */
+const BookmarkTabsAuthor = {
+    name: "TheMarch88",
+    id: 511186459588427795n
+} as const;
 
-// Injects the bookmarks bar into the chat view, right after the channel
-// header (and before the messages). One single replacement: it's
-// byte-identical on Discord Stable, PTB and Canary (verified Aug 2026),
-// and using exactly one replacement means it can never insert twice.
-const ChatBarPatch = {
-    find: "Missing channel in Channel.handleContextMenu",
+// Injects the bookmarks bar into the AppView layout, in the row directly
+// below the title bar (the drag bar with the minimize/maximize/close
+// buttons). Discord's AppView is a CSS grid with a dedicated area for that
+// row ("notice"), so the bar is inserted into the content subgrid and given
+// `grid-area: notice` via CSS (grid placement ignores DOM order, so the
+// exact insertion spot doesn't matter visually). Anchored after the unique
+// sidebar call so it stays clear of the built-in SurfaceClassesAPI patch
+// window. Verified against the live stable & canary bundles (Aug 2026):
+// exactly one occurrence each, all plugin orders coexist.
+const AppViewPatch = {
+    find: '"AppView"',
     replacement: {
-        // `showCall||showActivityPanel?null:this.renderHeaderBar(),`
-        match: /(\i\|\|\i\?null:this\.renderHeaderBar\(\),)/,
-        replace: "$1$self.renderBar(),"
+        // `(0,R.jsx)(OD,{isSidebarOpen:a,...,hideSidebar:!a})` — insert right after
+        match: /\{isSidebarOpen:.{0,80}hideSidebar:!\i\}\)/,
+        replace: "$&,$self.renderBar()"
     }
 };
 
@@ -34,7 +48,7 @@ let barMounted = false;
 
 export default definePlugin({
     name: "BookmarkTabs",
-    description: "Bookmark channels, DMs, servers and pages, then jump back to them from a bar below the channel header",
+    description: "Bookmark channels, DMs, servers and pages, then jump back to them from a bar below the title bar",
     tags: ["Appearance", "Customisation", "Organisation", "Servers"],
     authors: [BookmarkTabsAuthor],
 
@@ -50,7 +64,7 @@ export default definePlugin({
         "guild-context": guildContextMenuPatch
     },
 
-    patches: [ChatBarPatch],
+    patches: [AppViewPatch],
 
     start() {
         // migrate away from settings of older versions
@@ -79,7 +93,7 @@ export default definePlugin({
         BookmarkTabsUtils.init();
     },
 
-    // Rendered right below the channel header (see ChatBarPatch)
+    // Rendered right below the title bar (see AppViewPatch)
     renderBar() {
         if (!barMounted) {
             barMounted = true;
