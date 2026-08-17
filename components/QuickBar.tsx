@@ -122,7 +122,7 @@ function QuickBarChip({ bookmark, editing, startRename, stopRename, dragging, on
  * needing a DndProvider — which is also why it can't silently crash.
  */
 export default function QuickBar() {
-    const { quickBar } = settings.use(["quickBar"]);
+    const { quickBar, starPosition } = settings.use(["quickBar", "starPosition"]);
 
     const bookmarks = useBookmarks();
     const view = getCurrentViewSafe();
@@ -214,24 +214,28 @@ export default function QuickBar() {
 
     if (!quickBar) return null;
 
+    const starChip = view ? (
+        <div className={classes(cl("bar-star"), starPosition === "right" ? cl("bar-star-right") : cl("bar-star-left"))}>
+            <Tooltip text={bookmarked ? "Remove bookmark for this view" : "Bookmark this view"}>
+                {({ onMouseEnter, onMouseLeave }) => (
+                    <button
+                        className={classes(cl("bar-chip"), cl("bar-chip-star"), bookmarked && cl("bar-chip-star-on"))}
+                        onClick={() => void toggleBookmark(view)}
+                        onMouseEnter={onMouseEnter}
+                        onMouseLeave={onMouseLeave}
+                        aria-label={bookmarked ? "Remove bookmark for this view" : "Bookmark this view"}
+                    >
+                        {bookmarked ? <StarFilledIcon height={16} width={16} /> : <StarIcon height={16} width={16} />}
+                    </button>
+                )}
+            </Tooltip>
+        </div>
+    ) : null;
+
     return (
         <div className={cl("bar")}>
+            {starPosition !== "right" && starChip}
             <div className={cl("bar-scroller")} ref={scrollerRef}>
-                {view && (
-                    <Tooltip text={bookmarked ? "Remove bookmark for this view" : "Bookmark this view"}>
-                        {({ onMouseEnter, onMouseLeave }) => (
-                            <button
-                                className={classes(cl("bar-chip"), cl("bar-chip-star"), bookmarked && cl("bar-chip-star-on"))}
-                                onClick={() => void toggleBookmark(view)}
-                                onMouseEnter={onMouseEnter}
-                                onMouseLeave={onMouseLeave}
-                                aria-label={bookmarked ? "Remove bookmark for this view" : "Bookmark this view"}
-                            >
-                                {bookmarked ? <StarFilledIcon height={16} width={16} /> : <StarIcon height={16} width={16} />}
-                            </button>
-                        )}
-                    </Tooltip>
-                )}
                 {bookmarks.map((bookmark, index) => (
                     <QuickBarChip
                         key={bookmark.id}
@@ -253,6 +257,7 @@ export default function QuickBar() {
                     />
                 ))}
             </div>
+            {starPosition === "right" && starChip}
         </div>
     );
 }

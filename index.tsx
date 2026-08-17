@@ -18,24 +18,16 @@ import { settings } from "./util/constants";
 const BookmarkTabsAuthor = { name: "TheMarch88", id: 0n } as const;
 
 // Injects the bookmarks bar into the chat view, right after the channel
-// header (and before the messages). Two replacement variants with a
-// `(?!$self)` guard so only the first one that matches ever applies:
-// the exact ternary used by stable, and a looser fallback that survives
-// minor differences in other Discord build channels (PTB / Canary).
+// header (and before the messages). One single replacement: it's
+// byte-identical on Discord Stable, PTB and Canary (verified Aug 2026),
+// and using exactly one replacement means it can never insert twice.
 const ChatBarPatch = {
     find: "Missing channel in Channel.handleContextMenu",
-    replacement: [
-        {
-            // `showCall||showActivityPanel?null:this.renderHeaderBar(),`
-            match: /(\i\|\|\i\?null:this\.renderHeaderBar\(\),)(?!\$self)/,
-            replace: "$1$self.renderBar(),",
-            noWarn: true
-        },
-        {
-            match: /(this\.renderHeaderBar\(\),)(?!\$self)/,
-            replace: "$1$self.renderBar(),"
-        }
-    ]
+    replacement: {
+        // `showCall||showActivityPanel?null:this.renderHeaderBar(),`
+        match: /(\i\|\|\i\?null:this\.renderHeaderBar\(\),)/,
+        replace: "$1$self.renderBar(),"
+    }
 };
 
 let barMounted = false;

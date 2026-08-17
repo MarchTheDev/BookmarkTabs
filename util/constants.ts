@@ -57,6 +57,14 @@ export const settings = definePluginSettings({
         description: "Show the bookmarks bar at the top of the chat, right below the channel header",
         default: true
     },
+    starPosition: {
+        type: OptionType.SELECT,
+        description: "Where the \"bookmark this view\" star sits on the bar",
+        options: [
+            { label: "Left", value: "left", default: true },
+            { label: "Right", value: "right" }
+        ]
+    },
     unreadBadges: {
         type: OptionType.BOOLEAN,
         description: "Show unread (blue) and mention (red) indicators on bookmarks",

@@ -1,7 +1,9 @@
 /* ===== Bookmarks bar =====
-   Rendered inside the chat view, right below the channel header.
-   Chips follow the same visual language as the ChannelTabs plugin:
-   muted border, transparent background, rounded, Discord theme colors. */
+   Rendered inside the chat view, directly below the channel header.
+   The bar itself has NO background of its own — it inherits whatever the
+   theme paints the chat area with — and only draws the same thin hairline
+   Discord's header uses, so it reads as part of the header area on any
+   theme. Chips are fully theme-variable driven. */
 
 .vc-bookmarktabs-bar {
     display: flex;
@@ -11,7 +13,7 @@
     height: 38px;
     padding: 0 8px;
     box-sizing: border-box;
-    background-color: var(--background-primary, #313338);
+    background: transparent;
     box-shadow: inset 0 -1px 0 var(--background-base-low, rgba(0, 0, 0, 0.3));
     -webkit-app-region: no-drag;
 }
@@ -31,6 +33,22 @@
 
 .vc-bookmarktabs-bar-scroller::-webkit-scrollbar {
     display: none;
+}
+
+/* Pinned star chip, on either side of the scroller */
+.vc-bookmarktabs-bar-star {
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+    height: 100%;
+}
+
+.vc-bookmarktabs-bar-star-left {
+    margin-right: 8px;
+}
+
+.vc-bookmarktabs-bar-star-right {
+    margin-left: 8px;
 }
 
 /* A bookmark chip */
@@ -70,8 +88,8 @@
 
 .vc-bookmarktabs-bar-chip-star-on,
 .vc-bookmarktabs-bar-chip-star-on:hover {
-    color: #f0b232;
-    border-color: rgba(240, 178, 50, 0.4);
+    color: var(--text-warning, #f0b232);
+    border-color: color-mix(in srgb, var(--text-warning, #f0b232) 40%, transparent);
 }
 
 .vc-bookmarktabs-bar-chip-name {
@@ -89,11 +107,11 @@
 }
 
 .vc-bookmarktabs-bar-dot-unread {
-    background: #5865f2;
+    background: var(--brand-experiment, #5865f2);
 }
 
 .vc-bookmarktabs-bar-dot-mention {
-    background: #f23f43;
+    background: var(--status-danger, #f23f43);
 }
 
 /* Inline rename input (opened via right-click → Rename) */
