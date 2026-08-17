@@ -5,51 +5,26 @@
  */
 
 import { classNameFactory } from "@utils/css";
-import { getGuildAcronym } from "@utils/discord";
 import { classes } from "@utils/misc";
-import { Avatar, ChannelStore, GuildStore, UserStore, useState } from "@webpack/common";
+import { useState } from "@webpack/common";
 
-import { BookmarkRibbonIcon, CheckIcon, getPageIcon, PencilIcon, PlusIcon, TrashIcon, XIcon } from "../util/icons";
+import { settings } from "../util/constants";
+import { BookmarkRibbonIcon, CheckIcon, PencilIcon, PlusIcon, TrashIcon, XIcon } from "../util/icons";
 import { navigateToView } from "../util/navigation";
 import { isViewBookmarked, removeBookmark, renameBookmark, toggleBookmark, useBookmarks } from "../util/store";
 import { Bookmark, View } from "../util/types";
+import { useBookmarkBadges } from "../util/unread";
 import { bookmarkToView, getViewName } from "../util/view";
+import BookmarkIcon from "./BookmarkIcon";
 
 const cl = classNameFactory("vc-bookmarktabs-");
-
-function BookmarkIcon({ bookmark }: { bookmark: Bookmark; }) {
-    if (bookmark.kind === "page") {
-        const Icon = getPageIcon(bookmark.path!);
-        return <Icon height={18} width={18} className={cl("page-icon")} />;
-    }
-
-    const { guildId } = bookmark;
-    const guild = guildId && guildId !== "@me" ? GuildStore.getGuild(guildId) : null;
-
-    if (guild) {
-        return guild.icon
-            ? <img
-                className={cl("guild-img")}
-                src={`https://${window.GLOBAL_ENV.CDN_HOST}/icons/${guild.id}/${guild.icon}.png?size=40`}
-                alt=""
-            />
-            : <span className={cl("guild-fallback")}>{getGuildAcronym(guild)}</span>;
-    }
-
-    if (bookmark.kind === "channel" && bookmark.channelId) {
-        const channel = ChannelStore.getChannel(bookmark.channelId);
-        if (channel?.recipients?.length) {
-            const first = UserStore.getUser(channel.recipients[0]);
-            return <Avatar size="SIZE_20" src={first?.getAvatarURL(void 0, 40)} />;
-        }
-    }
-
-    return <span className={cl("guild-fallback")}>#</span>;
-}
 
 function BookmarkRow({ bookmark, onNavigate }: { bookmark: Bookmark; onNavigate(): void; }) {
     const [editing, setEditing] = useState(false);
     const [draft, setDraft] = useState(bookmark.name);
+
+    const { unreadBadges } = settings.use(["unreadBadges"]);
+    const badges = useBookmarkBadges(bookmark);
 
     const view = bookmarkToView(bookmark);
     const displayName = bookmark.name || getViewName(view);
@@ -103,6 +78,13 @@ function BookmarkRow({ bookmark, onNavigate }: { bookmark: Bookmark; onNavigate(
         >
             <span className={cl("row-icon")}><BookmarkIcon bookmark={bookmark} /></span>
             <span className={cl("row-name")} title={displayName}>{displayName}</span>
+            {unreadBadges && (
+                badges.mentionCount > 0
+                    ? <span className={classes(cl("row-dot"), cl("row-dot-mention"))} />
+                    : badges.hasUnread
+                        ? <span className={classes(cl("row-dot"), cl("row-dot-unread"))} />
+                        : null
+            )}
             <div className={cl("row-actions")}>
                 <button
                     className={cl("row-action")}
@@ -130,7 +112,7 @@ function BookmarkRow({ bookmark, onNavigate }: { bookmark: Bookmark; onNavigate(
     );
 }
 
-export default function BookmarkPopout({ view, onClose }: { view: View; onClose(): void; }) {
+export default function BookmarkPopout({ view, closePopout }: { view: View; closePopout(): void; }) {
     const bookmarks = useBookmarks();
     const bookmarked = isViewBookmarked(view);
     const currentName = getViewName(view);
@@ -139,7 +121,7 @@ export default function BookmarkPopout({ view, onClose }: { view: View; onClose(
         <div className={cl("popout")} role="dialog" aria-label="Bookmarks">
             <div className={cl("popout-header")}>
                 <span className={cl("popout-title")}>Bookmarks</span>
-                <button className={cl("popout-close")} onClick={onClose} aria-label="Close bookmarks">
+                <button className={cl("popout-close")} onClick={closePopout} aria-label="Close bookmarks">
                     <XIcon height={15} width={15} />
                 </button>
             </div>
@@ -166,7 +148,7 @@ export default function BookmarkPopout({ view, onClose }: { view: View; onClose(
                     </div>
                 )}
                 {bookmarks.map(bookmark => (
-                    <BookmarkRow key={bookmark.id} bookmark={bookmark} onNavigate={onClose} />
+                    <BookmarkRow key={bookmark.id} bookmark={bookmark} onNavigate={closePopout} />
                 ))}
             </div>
 

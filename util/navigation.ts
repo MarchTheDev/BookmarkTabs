@@ -8,11 +8,15 @@ import { NavigationRouter } from "@webpack/common";
 
 import { View } from "./types";
 
-/** Navigate Discord to the given view (channel, server or page) */
+/**
+ * Navigate Discord to the given view (channel, server or page).
+ * Uses path-based transitionTo, the same mechanism ChannelTabs uses
+ * for special pages and message links — the most reliable route.
+ */
 export function navigateToView(view: View) {
     switch (view.kind) {
         case "channel":
-            NavigationRouter.transitionToGuild(view.guildId, view.channelId);
+            NavigationRouter.transitionTo(`/channels/${view.guildId}/${view.channelId}`);
             break;
         case "guild":
             NavigationRouter.transitionTo(`/channels/${view.guildId}`);

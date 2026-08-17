@@ -1,58 +1,200 @@
-/* Slim top strip that hosts the bookmark button */
-.vc-bookmarktabs-strip {
+/* ===== Server sidebar (guild rail) star button ===== */
+
+.vc-bookmarktabs-rail-item {
     display: flex;
-    align-items: center;
-    flex: 0 0 auto;
-    height: 34px;
-    padding: 0 10px;
-    background: transparent;
+    justify-content: center;
 }
 
-.vc-bookmarktabs-strip-left {
-    justify-content: flex-start;
-}
-
-.vc-bookmarktabs-strip-right {
-    justify-content: flex-end;
-}
-
-/* The star button */
-.vc-bookmarktabs-button {
+.vc-bookmarktabs-rail-button {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 28px;
-    height: 28px;
-    padding: 0;
+    width: 48px;
+    height: 48px;
     border: none;
-    border-radius: 7px;
-    background: transparent;
+    border-radius: 16px;
+    background: var(--background-primary);
     color: var(--interactive-normal);
     cursor: pointer;
-    transition: background-color 0.15s ease, color 0.15s ease;
+    transition: border-radius 0.15s ease-out, background-color 0.15s ease-out, color 0.15s ease-out;
 }
 
-.vc-bookmarktabs-button:hover {
-    background: var(--background-modifier-hover);
-    color: var(--interactive-hover);
+.vc-bookmarktabs-rail-button:hover {
+    border-radius: 26px;
+    background-color: var(--brand-experiment);
+    color: #fff;
 }
 
-.vc-bookmarktabs-button:active {
-    background: var(--background-modifier-active);
+.vc-bookmarktabs-rail-button:active {
+    transform: translateY(1px);
 }
 
-.vc-bookmarktabs-button-active,
-.vc-bookmarktabs-button-active:hover {
+.vc-bookmarktabs-rail-button-active,
+.vc-bookmarktabs-rail-button-active:hover {
     color: var(--text-warning);
 }
 
-/* Popout positioning wrapper */
-.vc-bookmarktabs-popout-anchor {
-    position: fixed;
-    z-index: 1000;
+.vc-bookmarktabs-rail-badge {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    min-width: 14px;
+    height: 14px;
+    padding: 0 3px;
+    border-radius: 7px;
+    border: 2px solid var(--background-primary);
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 10px;
+    text-align: center;
+    box-sizing: content-box;
 }
 
-/* The popout itself */
+.vc-bookmarktabs-rail-badge-mention {
+    background: var(--status-danger);
+    color: #fff;
+}
+
+.vc-bookmarktabs-rail-badge-unread {
+    width: 8px;
+    height: 8px;
+    min-width: 0;
+    padding: 0;
+    border-radius: 50%;
+    background: var(--text-brand);
+}
+
+/* ===== Quick bar (ChannelTabs-style) ===== */
+
+.vc-bookmarktabs-bar {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    height: 36px;
+    padding: 0 8px;
+    background: var(--background-secondary);
+    border-bottom: 1px solid var(--background-modifier-accent);
+}
+
+.vc-bookmarktabs-bar-scroller {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    padding: 4px 4px 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.vc-bookmarktabs-bar-scroller::-webkit-scrollbar {
+    display: none;
+}
+
+.vc-bookmarktabs-bar-chip {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 0 0 auto;
+    height: 26px;
+    padding: 0 10px;
+    border-radius: 6px;
+    background: var(--background-modifier-hover);
+    color: var(--interactive-normal);
+    font-size: 13px;
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+}
+
+.vc-bookmarktabs-bar-chip:hover {
+    background: var(--background-modifier-selected);
+    color: var(--interactive-hover);
+}
+
+.vc-bookmarktabs-bar-chip-star {
+    padding: 0 9px;
+}
+
+.vc-bookmarktabs-bar-chip-star-on,
+.vc-bookmarktabs-bar-chip-star-on:hover {
+    color: var(--text-warning);
+}
+
+.vc-bookmarktabs-bar-chip-name {
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.vc-bookmarktabs-bar-dot {
+    position: absolute;
+    top: -3px;
+    right: -3px;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    border: 2px solid var(--background-secondary);
+    box-sizing: content-box;
+}
+
+.vc-bookmarktabs-bar-dot-unread {
+    background: var(--text-brand);
+}
+
+.vc-bookmarktabs-bar-dot-mention {
+    background: var(--status-danger);
+}
+
+.vc-bookmarktabs-bar-chip-actions {
+    display: none;
+    align-items: center;
+    gap: 2px;
+}
+
+.vc-bookmarktabs-bar-chip:hover .vc-bookmarktabs-bar-chip-actions {
+    display: flex;
+}
+
+.vc-bookmarktabs-bar-chip-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--interactive-normal);
+    cursor: pointer;
+}
+
+.vc-bookmarktabs-bar-chip-action:hover {
+    background: var(--background-modifier-accent);
+    color: var(--text-normal);
+}
+
+.vc-bookmarktabs-bar-chip-action-danger:hover {
+    color: var(--status-danger);
+}
+
+.vc-bookmarktabs-bar-input {
+    width: 130px;
+    height: 20px;
+    padding: 0 6px;
+    border: 1px solid var(--brand-experiment);
+    border-radius: 4px;
+    background: var(--input-background);
+    color: var(--text-normal);
+    font-size: 13px;
+    line-height: 1;
+    outline: none;
+}
+
+/* ===== Popout ===== */
+
 .vc-bookmarktabs-popout {
     display: flex;
     flex-direction: column;
@@ -245,6 +387,22 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+/* Unread / mention dots */
+.vc-bookmarktabs-row-dot {
+    flex: 0 0 auto;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.vc-bookmarktabs-row-dot-unread {
+    background: var(--text-brand);
+}
+
+.vc-bookmarktabs-row-dot-mention {
+    background: var(--status-danger);
 }
 
 /* Hover actions (rename / delete) */

@@ -13,7 +13,6 @@ export const logger = new Logger("BookmarkTabs");
 /** DataStore key, bookmarks are stored per-user: { [userId]: Bookmark[] } */
 export const DATA_KEY = "BookmarkTabs_bookmarks";
 
-export const STRIP_HEIGHT = 34;
 export const POPOUT_WIDTH = 320;
 
 export type PageIconKind =
@@ -55,17 +54,19 @@ export function getSpecialPage(path: string): SpecialPage | undefined {
 }
 
 export const settings = definePluginSettings({
-    showBookmarkButton: {
+    sidebarButton: {
         type: OptionType.BOOLEAN,
-        description: "Show the bookmark button",
+        description: "Show the bookmark button in the server sidebar, below the DM and Quests buttons",
         default: true
     },
-    buttonSide: {
-        type: OptionType.SELECT,
-        description: "Which side of the screen the bookmark button sits on",
-        options: [
-            { label: "Right", value: "right", default: true },
-            { label: "Left", value: "left" }
-        ]
+    quickBar: {
+        type: OptionType.BOOLEAN,
+        description: "Show a bookmarks bar at the top of the window for one-click switching",
+        default: false
+    },
+    unreadBadges: {
+        type: OptionType.BOOLEAN,
+        description: "Show unread (blue) and mention (red) indicators on bookmarks",
+        default: true
     }
 });
