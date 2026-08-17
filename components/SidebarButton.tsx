@@ -6,6 +6,7 @@
 
 import { classNameFactory } from "@utils/css";
 import { classes } from "@utils/misc";
+import { findCssClassesLazy } from "@webpack";
 import { Popout, Tooltip, useRef } from "@webpack/common";
 
 import { settings } from "../util/constants";
@@ -15,12 +16,15 @@ import { useTotalBadges } from "../util/unread";
 import { getCurrentView } from "../util/view";
 import BookmarkPopout from "./BookmarkPopout";
 
+// Discord's own DM/home button class — the star button looks exactly like it
+const HomeButtonClasses = findCssClassesLazy("circleIconButton");
+
 const cl = classNameFactory("vc-bookmarktabs-");
 
 /**
  * The star button in the server sidebar (guild rail), right below the
- * DM and Quests buttons. Uses Discord's native Popout, so positioning,
- * outside-click closing and layering are all handled by Discord itself.
+ * DM and Quests buttons. Uses Discord's native Popout and the same CSS
+ * class as the DM button, so it always matches Discord's look.
  */
 export default function SidebarButton() {
     const { sidebarButton, unreadBadges } = settings.use(["sidebarButton", "unreadBadges"]);
@@ -48,7 +52,11 @@ export default function SidebarButton() {
                             <button
                                 {...popoutProps}
                                 ref={buttonRef}
-                                className={classes(cl("rail-button"), active && cl("rail-button-active"))}
+                                className={classes(
+                                    cl("rail-button"),
+                                    HomeButtonClasses.circleIconButton,
+                                    active && cl("rail-button-active")
+                                )}
                                 onMouseEnter={onMouseEnter}
                                 onMouseLeave={onMouseLeave}
                                 aria-label="Bookmarks"

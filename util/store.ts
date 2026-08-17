@@ -104,6 +104,19 @@ export async function renameBookmark(id: string, name: string): Promise<void> {
     void persist();
 }
 
+/** Move a bookmark from one position to another (drag & drop reordering) */
+export function moveBookmarks(fromIndex: number, toIndex: number) {
+    if (fromIndex < 0 || fromIndex >= bookmarks.length) return;
+    if (toIndex < 0 || toIndex >= bookmarks.length) return;
+    if (fromIndex === toIndex) return;
+
+    const [moved] = bookmarks.splice(fromIndex, 1);
+    bookmarks.splice(toIndex, 0, moved);
+
+    notify();
+    void persist();
+}
+
 /** Bookmark or un-bookmark the given view */
 export async function toggleBookmark(view: View): Promise<boolean> {
     return isViewBookmarked(view) ? removeBookmark(view) : addBookmark(view);

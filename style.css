@@ -1,4 +1,7 @@
-/* ===== Server sidebar (guild rail) star button ===== */
+/* ===== Server sidebar (guild rail) star button =====
+   The button reuses Discord's own DM/home button class
+   (circleIconButton), so background, color, size and hover
+   behavior are Discord's — only positioning and badges are ours. */
 
 .vc-bookmarktabs-rail-item {
     display: flex;
@@ -7,32 +10,12 @@
 
 .vc-bookmarktabs-rail-button {
     position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 48px;
-    height: 48px;
-    border: none;
-    border-radius: 16px;
-    background: var(--background-primary);
-    color: var(--interactive-normal);
-    cursor: pointer;
-    transition: border-radius 0.15s ease-out, background-color 0.15s ease-out, color 0.15s ease-out;
 }
 
-.vc-bookmarktabs-rail-button:hover {
-    border-radius: 26px;
-    background-color: var(--brand-experiment);
-    color: #fff;
-}
-
-.vc-bookmarktabs-rail-button:active {
-    transform: translateY(1px);
-}
-
+/* gold star when the current view is bookmarked */
 .vc-bookmarktabs-rail-button-active,
 .vc-bookmarktabs-rail-button-active:hover {
-    color: var(--text-warning);
+    color: #f0b232 !important;
 }
 
 .vc-bookmarktabs-rail-badge {
@@ -43,7 +26,7 @@
     height: 14px;
     padding: 0 3px;
     border-radius: 7px;
-    border: 2px solid var(--background-primary);
+    border: 2px solid #313338;
     font-size: 10px;
     font-weight: 700;
     line-height: 10px;
@@ -52,7 +35,7 @@
 }
 
 .vc-bookmarktabs-rail-badge-mention {
-    background: var(--status-danger);
+    background: #f23f43;
     color: #fff;
 }
 
@@ -62,28 +45,38 @@
     min-width: 0;
     padding: 0;
     border-radius: 50%;
-    background: var(--text-brand);
+    background: #5865f2;
 }
 
-/* ===== Quick bar (ChannelTabs-style) ===== */
+/* ===== Quick bar (ChannelTabs-style) =====
+   Rendered into Discord's "notice" grid area, the same slot
+   ChannelTabs' top bar uses — a full-width row at the top. */
 
 .vc-bookmarktabs-bar {
-    flex: 0 0 auto;
+    grid-area: notice;
+    z-index: 102;
+    -webkit-app-region: no-drag;
     display: flex;
     align-items: center;
+    flex: none;
+    width: 100%;
     height: 36px;
     padding: 0 8px;
-    background: var(--background-secondary);
-    border-bottom: 1px solid var(--background-modifier-accent);
+    box-sizing: border-box;
+    background-color: var(--background-primary, #313338);
+    box-shadow: inset 0 -1px 0 var(--background-base-low, rgba(0, 0, 0, 0.3));
 }
 
 .vc-bookmarktabs-bar-scroller {
     display: flex;
     align-items: center;
-    gap: 6px;
+    flex: 1 1 auto;
     min-width: 0;
-    padding: 4px 4px 0;
+    gap: 6px;
+    height: 100%;
     overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
     scrollbar-width: none;
 }
 
@@ -92,16 +85,15 @@
 }
 
 .vc-bookmarktabs-bar-chip {
-    position: relative;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 6px;
     flex: 0 0 auto;
     height: 26px;
     padding: 0 10px;
     border-radius: 6px;
-    background: var(--background-modifier-hover);
-    color: var(--interactive-normal);
+    background: var(--background-modifier-hover, rgba(255, 255, 255, 0.04));
+    color: var(--interactive-normal, #b5bac1);
     font-size: 13px;
     line-height: 1;
     white-space: nowrap;
@@ -110,8 +102,8 @@
 }
 
 .vc-bookmarktabs-bar-chip:hover {
-    background: var(--background-modifier-selected);
-    color: var(--interactive-hover);
+    background: var(--background-modifier-selected, rgba(255, 255, 255, 0.08));
+    color: var(--interactive-hover, #dbdee1);
 }
 
 .vc-bookmarktabs-bar-chip-star {
@@ -120,7 +112,7 @@
 
 .vc-bookmarktabs-bar-chip-star-on,
 .vc-bookmarktabs-bar-chip-star-on:hover {
-    color: var(--text-warning);
+    color: #f0b232;
 }
 
 .vc-bookmarktabs-bar-chip-name {
@@ -130,22 +122,18 @@
 }
 
 .vc-bookmarktabs-bar-dot {
-    position: absolute;
-    top: -3px;
-    right: -3px;
-    width: 9px;
-    height: 9px;
+    flex: 0 0 auto;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
-    border: 2px solid var(--background-secondary);
-    box-sizing: content-box;
 }
 
 .vc-bookmarktabs-bar-dot-unread {
-    background: var(--text-brand);
+    background: #5865f2;
 }
 
 .vc-bookmarktabs-bar-dot-mention {
-    background: var(--status-danger);
+    background: #f23f43;
 }
 
 .vc-bookmarktabs-bar-chip-actions {
@@ -167,43 +155,41 @@
     border: none;
     border-radius: 4px;
     background: transparent;
-    color: var(--interactive-normal);
+    color: var(--interactive-normal, #b5bac1);
     cursor: pointer;
 }
 
 .vc-bookmarktabs-bar-chip-action:hover {
-    background: var(--background-modifier-accent);
-    color: var(--text-normal);
+    background: var(--background-modifier-accent, rgba(255, 255, 255, 0.12));
+    color: var(--text-normal, #dbdee1);
 }
 
 .vc-bookmarktabs-bar-chip-action-danger:hover {
-    color: var(--status-danger);
+    color: #f23f43;
 }
 
 .vc-bookmarktabs-bar-input {
     width: 130px;
     height: 20px;
     padding: 0 6px;
-    border: 1px solid var(--brand-experiment);
+    border: 1px solid #5865f2;
     border-radius: 4px;
-    background: var(--input-background);
-    color: var(--text-normal);
+    background: var(--input-background, #1e1f22);
+    color: var(--text-normal, #dbdee1);
     font-size: 13px;
     line-height: 1;
     outline: none;
 }
 
-/* ===== Popout ===== */
+/* ===== Popout =====
+   The popout panel itself is Discord's own popout container
+   (PopoutClasses.container via the Dialog component) — its background,
+   border, shadow and radius are Discord's, so it always matches. */
 
 .vc-bookmarktabs-popout {
     display: flex;
     flex-direction: column;
-    width: 320px;
-    max-height: min(480px, calc(100vh - 60px));
-    background: var(--background-floating);
-    border: 1px solid var(--background-modifier-accent);
-    border-radius: 8px;
-    box-shadow: var(--elevation-high);
+    max-height: inherit;
     overflow: hidden;
 }
 
@@ -215,7 +201,7 @@
 }
 
 .vc-bookmarktabs-popout-title {
-    color: var(--header-primary);
+    color: var(--header-primary, #f2f3f5);
     font-size: 13px;
     font-weight: 600;
     line-height: 18px;
@@ -232,13 +218,13 @@
     border: none;
     border-radius: 5px;
     background: transparent;
-    color: var(--interactive-normal);
+    color: var(--interactive-normal, #b5bac1);
     cursor: pointer;
 }
 
 .vc-bookmarktabs-popout-close:hover {
-    background: var(--background-modifier-selected);
-    color: var(--interactive-hover);
+    background: var(--background-modifier-selected, rgba(255, 255, 255, 0.08));
+    color: var(--interactive-hover, #dbdee1);
 }
 
 /* "Bookmark this view" action */
@@ -250,20 +236,21 @@
     padding: 8px 10px;
     border: none;
     border-radius: 6px;
-    background: var(--brand-experiment);
+    background: #5865f2;
     color: #fff;
     cursor: pointer;
     text-align: left;
+    font-family: inherit;
 }
 
 .vc-bookmarktabs-popout-current:hover {
-    background: var(--brand-experiment-560);
+    background: #4752c4;
 }
 
 .vc-bookmarktabs-popout-current-active,
 .vc-bookmarktabs-popout-current-active:hover {
-    background: var(--background-secondary);
-    color: var(--text-muted);
+    background: var(--background-secondary, #313338);
+    color: var(--text-muted, #949ba4);
 }
 
 .vc-bookmarktabs-popout-current-icon {
@@ -309,7 +296,7 @@
 }
 
 .vc-bookmarktabs-popout-list::-webkit-scrollbar-thumb {
-    background: var(--background-modifier-accent);
+    background: var(--background-modifier-accent, rgba(255, 255, 255, 0.12));
     border-radius: 4px;
 }
 
@@ -319,7 +306,7 @@
     align-items: center;
     gap: 6px;
     padding: 24px 16px;
-    color: var(--text-muted);
+    color: var(--text-muted, #949ba4);
     font-size: 13px;
     line-height: 18px;
     text-align: center;
@@ -336,12 +323,20 @@
     gap: 10px;
     padding: 7px 8px;
     border-radius: 6px;
-    color: var(--text-normal);
+    color: var(--text-normal, #dbdee1);
     cursor: pointer;
 }
 
 .vc-bookmarktabs-row:hover {
-    background: var(--background-modifier-hover);
+    background: var(--background-modifier-hover, rgba(255, 255, 255, 0.04));
+}
+
+.vc-bookmarktabs-row-dragging {
+    opacity: 0.45;
+}
+
+.vc-bookmarktabs-row-over {
+    box-shadow: inset 0 2px 0 #5865f2;
 }
 
 .vc-bookmarktabs-row-icon {
@@ -351,11 +346,11 @@
     flex: 0 0 auto;
     width: 20px;
     height: 20px;
-    color: var(--interactive-normal);
+    color: var(--interactive-normal, #b5bac1);
 }
 
 .vc-bookmarktabs-page-icon {
-    color: var(--interactive-normal);
+    color: var(--interactive-normal, #b5bac1);
 }
 
 .vc-bookmarktabs-guild-img {
@@ -372,8 +367,8 @@
     width: 20px;
     height: 20px;
     border-radius: 4px;
-    background: var(--background-modifier-selected);
-    color: var(--text-muted);
+    background: var(--background-modifier-selected, rgba(255, 255, 255, 0.08));
+    color: var(--text-muted, #949ba4);
     font-size: 9px;
     font-weight: 700;
     line-height: 20px;
@@ -398,11 +393,11 @@
 }
 
 .vc-bookmarktabs-row-dot-unread {
-    background: var(--text-brand);
+    background: #5865f2;
 }
 
 .vc-bookmarktabs-row-dot-mention {
-    background: var(--status-danger);
+    background: #f23f43;
 }
 
 /* Hover actions (rename / delete) */
@@ -428,17 +423,17 @@
     border: none;
     border-radius: 5px;
     background: transparent;
-    color: var(--interactive-normal);
+    color: var(--interactive-normal, #b5bac1);
     cursor: pointer;
 }
 
 .vc-bookmarktabs-row-action:hover {
-    background: var(--background-modifier-selected);
-    color: var(--interactive-hover);
+    background: var(--background-modifier-selected, rgba(255, 255, 255, 0.08));
+    color: var(--interactive-hover, #dbdee1);
 }
 
 .vc-bookmarktabs-row-action-danger:hover {
-    color: var(--status-danger);
+    color: #f23f43;
 }
 
 /* Inline rename input */
@@ -451,10 +446,10 @@
     min-width: 0;
     margin-left: 30px;
     padding: 3px 6px;
-    border: 1px solid var(--brand-experiment);
+    border: 1px solid #5865f2;
     border-radius: 4px;
-    background: var(--input-background);
-    color: var(--text-normal);
+    background: var(--input-background, #1e1f22);
+    color: var(--text-normal, #dbdee1);
     font-size: 14px;
     line-height: 18px;
     outline: none;
@@ -463,8 +458,8 @@
 /* Footer hint */
 .vc-bookmarktabs-popout-footer {
     padding: 6px 12px 8px;
-    border-top: 1px solid var(--background-modifier-accent);
-    color: var(--text-muted);
+    border-top: 1px solid var(--background-modifier-accent, rgba(255, 255, 255, 0.12));
+    color: var(--text-muted, #949ba4);
     font-size: 11px;
     line-height: 14px;
     text-align: center;

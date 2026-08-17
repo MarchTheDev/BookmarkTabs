@@ -92,17 +92,22 @@ export default definePlugin({
         );
     },
 
-    // Rendered instead of the AppView container div. Re-emits the container
-    // with Discord's own layout class so nothing about Discord's layout changes,
-    // and optionally renders the quick bar above the content.
+    // Rendered instead of the AppView container div. The quick bar is emitted
+    // as a sibling of the container so it lands in Discord's "notice" grid
+    // area (the same slot ChannelTabs' top bar uses). When the bar is off,
+    // the container is re-emitted byte-for-byte equivalent to vanilla.
     render({ className, children }: { className?: string; currentChannel?: unknown; children: ReactNode; }) {
+        const content = <div className={className ?? ""}>{children}</div>;
+
+        if (!settings.store.quickBar) return content;
+
         return (
-            <div className={className ?? ""}>
+            <>
                 <ErrorBoundary>
                     <QuickBar />
                 </ErrorBoundary>
-                {children}
-            </div>
+                {content}
+            </>
         );
     },
 

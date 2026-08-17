@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+import { isPluginEnabled } from "@api/PluginManager";
 import { classNameFactory } from "@utils/css";
 import { classes } from "@utils/misc";
 import { useForceUpdater } from "@utils/react";
@@ -17,11 +18,16 @@ import { Bookmark, View } from "../util/types";
 import { useBookmarkBadges } from "../util/unread";
 import { bookmarkToView, getCurrentView, getViewName } from "../util/view";
 import BookmarkIcon from "./BookmarkIcon";
+import { openBookmarkMenu } from "./BookmarkMenu";
 
 const cl = classNameFactory("vc-bookmarktabs-");
 
-function QuickBarChip({ bookmark }: { bookmark: Bookmark; }) {
-    const [editing, setEditing] = useState(false);
+function QuickBarChip({ bookmark, editing, startRename, stopRename }: {
+    bookmark: Bookmark;
+    editing: boolean;
+    startRename(): void;
+    stopRename(): void;
+}) {
     const [draft, setDraft] = useState(bookmark.name);
 
     const { unreadBadges } = settings.use(["unreadBadges"]);
@@ -32,7 +38,7 @@ function QuickBarChip({ bookmark }: { bookmark: Bookmark; }) {
 
     if (editing) {
         return (
-            <div className={cl("bar-chip", "bar-chip-editing")}>
+            <div className={classes(cl("bar-chip"), cl("bar-chip-editing"))}>
                 <input
                     className={cl("bar-input")}
                     value={draft}
@@ -42,15 +48,15 @@ function QuickBarChip({ bookmark }: { bookmark: Bookmark; }) {
                     onFocus={e => e.currentTarget.select()}
                     onBlur={() => {
                         void renameBookmark(bookmark.id, draft);
-                        setEditing(false);
+                        stopRename();
                     }}
                     onKeyDown={e => {
                         if (e.key === "Enter") {
                             void renameBookmark(bookmark.id, draft);
-                            setEditing(false);
+                            stopRename();
                         } else if (e.key === "Escape") {
                             setDraft(bookmark.name);
-                            setEditing(false);
+                            stopRename();
                         }
                     }}
                 />
@@ -70,6 +76,12 @@ function QuickBarChip({ bookmark }: { bookmark: Bookmark; }) {
                     navigateToView(view);
                 }
             }}
+            onContextMenu={e => openBookmarkMenu(e, {
+                bookmark,
+                view,
+                onNavigate: () => void 0,
+                onRename: startRename
+            })}
         >
             <BookmarkIcon bookmark={bookmark} />
             <span className={cl("bar-chip-name")} title={displayName}>{displayName}</span>
@@ -87,7 +99,7 @@ function QuickBarChip({ bookmark }: { bookmark: Bookmark; }) {
                     onClick={e => {
                         e.stopPropagation();
                         setDraft(bookmark.name);
-                        setEditing(true);
+                        startRename();
                     }}
                 >
                     <PencilIcon height={11} width={11} />
@@ -108,8 +120,9 @@ function QuickBarChip({ bookmark }: { bookmark: Bookmark; }) {
 }
 
 /**
- * A ChannelTabs-style horizontal bar at the top of the window with every
- * bookmark as a clickable chip, plus a star chip to bookmark the current view.
+ * A ChannelTabs-style bar at the top of the window with every bookmark as a
+ * clickable chip, plus a star chip to bookmark the current view.
+ * Rendered into Discord's "notice" grid area, exactly like ChannelTabs' tab bar.
  */
 export default function QuickBar() {
     const { quickBar } = settings.use(["quickBar"]);
@@ -117,6 +130,8 @@ export default function QuickBar() {
     const bookmarks = useBookmarks();
     const view = getCurrentViewSafe();
     const bookmarked = view ? isViewBookmarked(view) : false;
+
+    const [editingId, setEditingId] = useState<string | null>(null);
 
     const forceUpdate = useForceUpdater();
 
@@ -132,6 +147,14 @@ export default function QuickBar() {
     }, []);
 
     if (!quickBar) return null;
+
+    // ChannelTabs' tab bar lives in the same grid area; don't double-stack
+    try {
+        if (isPluginEnabled("ChannelTabs")) {
+            const ct = Vencord.Plugins.plugins.ChannelTabs as any;
+            if (ct?.util?.settings?.store?.tabBarPosition === "top") return null;
+        }
+    } catch { /* ignore */ }
 
     return (
         <div className={cl("bar")}>
@@ -151,7 +174,13 @@ export default function QuickBar() {
                     </Tooltip>
                 )}
                 {bookmarks.map(bookmark => (
-                    <QuickBarChip key={bookmark.id} bookmark={bookmark} />
+                    <QuickBarChip
+                        key={bookmark.id}
+                        bookmark={bookmark}
+                        editing={editingId === bookmark.id}
+                        startRename={() => setEditingId(bookmark.id)}
+                        stopRename={() => setEditingId(null)}
+                    />
                 ))}
             </div>
         </div>
