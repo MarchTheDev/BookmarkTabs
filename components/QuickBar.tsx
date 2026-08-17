@@ -4,16 +4,15 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import { isPluginEnabled } from "@api/PluginManager";
 import { classNameFactory } from "@utils/css";
 import { classes } from "@utils/misc";
 import { useForceUpdater } from "@utils/react";
-import { FluxDispatcher, Tooltip, useEffect, useState } from "@webpack/common";
+import { FluxDispatcher, Tooltip, useDrag, useDrop, useEffect, useRef, useState } from "@webpack/common";
 
 import { settings } from "../util/constants";
-import { CheckIcon, PencilIcon, StarIcon, TrashIcon } from "../util/icons";
+import { StarFilledIcon, StarIcon } from "../util/icons";
 import { navigateToView } from "../util/navigation";
-import { isViewBookmarked, removeBookmark, renameBookmark, toggleBookmark, useBookmarks } from "../util/store";
+import { isViewBookmarked, moveBookmarks, renameBookmark, toggleBookmark, useBookmarks } from "../util/store";
 import { Bookmark, View } from "../util/types";
 import { useBookmarkBadges } from "../util/unread";
 import { bookmarkToView, getCurrentView, getViewName } from "../util/view";
@@ -22,13 +21,15 @@ import { openBookmarkMenu } from "./BookmarkMenu";
 
 const cl = classNameFactory("vc-bookmarktabs-");
 
-function QuickBarChip({ bookmark, editing, startRename, stopRename }: {
+function QuickBarChip({ bookmark, index, editing, startRename, stopRename }: {
     bookmark: Bookmark;
+    index: number;
     editing: boolean;
     startRename(): void;
     stopRename(): void;
 }) {
     const [draft, setDraft] = useState(bookmark.name);
+    const ref = useRef<HTMLDivElement>(null);
 
     const { unreadBadges } = settings.use(["unreadBadges"]);
     const badges = useBookmarkBadges(bookmark);
@@ -36,9 +37,40 @@ function QuickBarChip({ bookmark, editing, startRename, stopRename }: {
     const view = bookmarkToView(bookmark);
     const displayName = bookmark.name || getViewName(view);
 
+    // drag & drop reordering (ChannelTabs-style, horizontal)
+    const [{ isDragging }, drag] = useDrag(() => ({
+        type: "vc_bookmarktabs_reorder",
+        canDrag: () => !editing,
+        item: () => ({ index }),
+        collect: monitor => ({ isDragging: !!monitor.isDragging() })
+    }), [index, editing]);
+
+    const [{ isOver }, drop] = useDrop(() => ({
+        accept: "vc_bookmarktabs_reorder",
+        hover: (item: { index: number }, monitor) => {
+            if (!ref.current || editing) return;
+            if (item.index === index) return;
+
+            const rect = ref.current.getBoundingClientRect();
+            const hoverMiddleX = (rect.right - rect.left) / 2;
+            const clientOffset = monitor.getClientOffset();
+            if (!clientOffset) return;
+
+            const hoverClientX = clientOffset.x - rect.left;
+            if (item.index < index && hoverClientX < hoverMiddleX) return;
+            if (item.index > index && hoverClientX > hoverMiddleX) return;
+
+            moveBookmarks(item.index, index);
+            item.index = index;
+        },
+        collect: monitor => ({ isOver: !!monitor.isOver({ shallow: true }) })
+    }), [index, editing]);
+
+    drag(drop(ref));
+
     if (editing) {
         return (
-            <div className={classes(cl("bar-chip"), cl("bar-chip-editing"))}>
+            <div ref={ref} className={classes(cl("bar-chip"), cl("bar-chip-editing"))}>
                 <input
                     className={cl("bar-input")}
                     value={draft}
@@ -66,7 +98,12 @@ function QuickBarChip({ bookmark, editing, startRename, stopRename }: {
 
     return (
         <div
-            className={cl("bar-chip")}
+            ref={ref}
+            className={classes(
+                cl("bar-chip"),
+                isDragging && cl("bar-chip-dragging"),
+                isOver && cl("bar-chip-over")
+            )}
             role="button"
             tabIndex={0}
             onClick={() => navigateToView(view)}
@@ -92,37 +129,15 @@ function QuickBarChip({ bookmark, editing, startRename, stopRename }: {
                         ? <span className={classes(cl("bar-dot"), cl("bar-dot-unread"))} />
                         : null
             )}
-            <span className={cl("bar-chip-actions")}>
-                <button
-                    className={cl("bar-chip-action")}
-                    aria-label="Rename bookmark"
-                    onClick={e => {
-                        e.stopPropagation();
-                        setDraft(bookmark.name);
-                        startRename();
-                    }}
-                >
-                    <PencilIcon height={11} width={11} />
-                </button>
-                <button
-                    className={cl("bar-chip-action", "bar-chip-action-danger")}
-                    aria-label="Delete bookmark"
-                    onClick={e => {
-                        e.stopPropagation();
-                        void removeBookmark(view);
-                    }}
-                >
-                    <TrashIcon height={11} width={11} />
-                </button>
-            </span>
         </div>
     );
 }
 
 /**
- * A ChannelTabs-style bar at the top of the window with every bookmark as a
- * clickable chip, plus a star chip to bookmark the current view.
- * Rendered into Discord's "notice" grid area, exactly like ChannelTabs' tab bar.
+ * A ChannelTabs-style bar shown at the top of the chat, right below the
+ * channel header. Each bookmark is a clickable chip: click to jump,
+ * right-click for the menu, drag to reorder. The star chip bookmarks
+ * (or unbookmarks) the view you're currently in.
  */
 export default function QuickBar() {
     const { quickBar } = settings.use(["quickBar"]);
@@ -135,7 +150,7 @@ export default function QuickBar() {
 
     const forceUpdate = useForceUpdater();
 
-    // keep the "bookmark this view" star chip in sync while navigating
+    // keep the star chip in sync while navigating
     useEffect(() => {
         const onNavigation = () => forceUpdate();
         FluxDispatcher.subscribe("CHANNEL_SELECT", onNavigation);
@@ -148,14 +163,6 @@ export default function QuickBar() {
 
     if (!quickBar) return null;
 
-    // ChannelTabs' tab bar lives in the same grid area; don't double-stack
-    try {
-        if (isPluginEnabled("ChannelTabs")) {
-            const ct = Vencord.Plugins.plugins.ChannelTabs as any;
-            if (ct?.util?.settings?.store?.tabBarPosition === "top") return null;
-        }
-    } catch { /* ignore */ }
-
     return (
         <div className={cl("bar")}>
             <div className={cl("bar-scroller")}>
@@ -167,16 +174,18 @@ export default function QuickBar() {
                                 onClick={() => void toggleBookmark(view)}
                                 onMouseEnter={onMouseEnter}
                                 onMouseLeave={onMouseLeave}
+                                aria-label={bookmarked ? "Remove bookmark for this view" : "Bookmark this view"}
                             >
-                                {bookmarked ? <CheckIcon height={14} width={14} /> : <StarIcon height={14} width={14} />}
+                                {bookmarked ? <StarFilledIcon height={16} width={16} /> : <StarIcon height={16} width={16} />}
                             </button>
                         )}
                     </Tooltip>
                 )}
-                {bookmarks.map(bookmark => (
+                {bookmarks.map((bookmark, index) => (
                     <QuickBarChip
                         key={bookmark.id}
                         bookmark={bookmark}
+                        index={index}
                         editing={editingId === bookmark.id}
                         startRename={() => setEditingId(bookmark.id)}
                         stopRename={() => setEditingId(null)}

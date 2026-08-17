@@ -6,7 +6,6 @@
 
 import { ReadStateStore, useStateFromStores } from "@webpack/common";
 
-import { useBookmarks } from "./store";
 import { Bookmark } from "./types";
 
 export interface BookmarkBadges {
@@ -27,25 +26,5 @@ export function useBookmarkBadges(bookmark: Bookmark): BookmarkBadges {
             }
             : { hasUnread: false, mentionCount: 0 },
         [channelId]
-    );
-}
-
-/** Aggregate unread/mention state across all bookmarks (for the sidebar button) */
-export function useTotalBadges(): BookmarkBadges {
-    const bookmarks = useBookmarks();
-
-    return useStateFromStores(
-        [ReadStateStore],
-        () => {
-            let hasUnread = false;
-            let mentionCount = 0;
-            for (const bookmark of bookmarks) {
-                if (bookmark.kind !== "channel" || !bookmark.channelId) continue;
-                mentionCount += ReadStateStore.getMentionCount(bookmark.channelId);
-                if (!hasUnread) hasUnread = ReadStateStore.hasUnread(bookmark.channelId);
-            }
-            return { hasUnread, mentionCount };
-        },
-        [bookmarks]
     );
 }

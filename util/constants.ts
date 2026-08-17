@@ -13,8 +13,6 @@ export const logger = new Logger("BookmarkTabs");
 /** DataStore key, bookmarks are stored per-user: { [userId]: Bookmark[] } */
 export const DATA_KEY = "BookmarkTabs_bookmarks";
 
-export const POPOUT_WIDTH = 320;
-
 export type PageIconKind =
     | "friends"
     | "shop"
@@ -54,15 +52,10 @@ export function getSpecialPage(path: string): SpecialPage | undefined {
 }
 
 export const settings = definePluginSettings({
-    sidebarButton: {
-        type: OptionType.BOOLEAN,
-        description: "Show the bookmark button in the server sidebar, below the DM and Quests buttons",
-        default: true
-    },
     quickBar: {
         type: OptionType.BOOLEAN,
-        description: "Show a bookmarks bar at the top of the window for one-click switching",
-        default: false
+        description: "Show the bookmarks bar at the top of the chat, right below the channel header",
+        default: true
     },
     unreadBadges: {
         type: OptionType.BOOLEAN,
