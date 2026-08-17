@@ -63,10 +63,6 @@
     opacity: 0.45;
 }
 
-.vc-bookmarktabs-bar-chip-over {
-    box-shadow: inset 2px 0 0 var(--brand-experiment, #5865f2);
-}
-
 /* The star chip (bookmark / unbookmark current view) */
 .vc-bookmarktabs-bar-chip-star {
     padding: 0 9px;

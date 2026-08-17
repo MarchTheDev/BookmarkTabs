@@ -7,7 +7,8 @@
 import { classNameFactory } from "@utils/css";
 import { classes } from "@utils/misc";
 import { useForceUpdater } from "@utils/react";
-import { FluxDispatcher, Tooltip, useDrag, useDrop, useEffect, useRef, useState } from "@webpack/common";
+import { FluxDispatcher, Tooltip, useEffect, useRef, useState } from "@webpack/common";
+import type { PointerEvent as ReactPointerEvent } from "react";
 
 import { settings } from "../util/constants";
 import { StarFilledIcon, StarIcon } from "../util/icons";
@@ -21,15 +22,20 @@ import { openBookmarkMenu } from "./BookmarkMenu";
 
 const cl = classNameFactory("vc-bookmarktabs-");
 
-function QuickBarChip({ bookmark, index, editing, startRename, stopRename }: {
+const DRAG_THRESHOLD = 6; // px of horizontal movement before a drag starts
+
+/** used to swallow the click that fires right after a drag ends */
+let suppressClickUntil = 0;
+
+function QuickBarChip({ bookmark, editing, startRename, stopRename, dragging, onDragStart }: {
     bookmark: Bookmark;
-    index: number;
     editing: boolean;
     startRename(): void;
     stopRename(): void;
+    dragging: boolean;
+    onDragStart(e: ReactPointerEvent, bookmark: Bookmark): void;
 }) {
     const [draft, setDraft] = useState(bookmark.name);
-    const ref = useRef<HTMLDivElement>(null);
 
     const { unreadBadges } = settings.use(["unreadBadges"]);
     const badges = useBookmarkBadges(bookmark);
@@ -37,40 +43,9 @@ function QuickBarChip({ bookmark, index, editing, startRename, stopRename }: {
     const view = bookmarkToView(bookmark);
     const displayName = bookmark.name || getViewName(view);
 
-    // drag & drop reordering (ChannelTabs-style, horizontal)
-    const [{ isDragging }, drag] = useDrag(() => ({
-        type: "vc_bookmarktabs_reorder",
-        canDrag: () => !editing,
-        item: () => ({ index }),
-        collect: monitor => ({ isDragging: !!monitor.isDragging() })
-    }), [index, editing]);
-
-    const [{ isOver }, drop] = useDrop(() => ({
-        accept: "vc_bookmarktabs_reorder",
-        hover: (item: { index: number }, monitor) => {
-            if (!ref.current || editing) return;
-            if (item.index === index) return;
-
-            const rect = ref.current.getBoundingClientRect();
-            const hoverMiddleX = (rect.right - rect.left) / 2;
-            const clientOffset = monitor.getClientOffset();
-            if (!clientOffset) return;
-
-            const hoverClientX = clientOffset.x - rect.left;
-            if (item.index < index && hoverClientX < hoverMiddleX) return;
-            if (item.index > index && hoverClientX > hoverMiddleX) return;
-
-            moveBookmarks(item.index, index);
-            item.index = index;
-        },
-        collect: monitor => ({ isOver: !!monitor.isOver({ shallow: true }) })
-    }), [index, editing]);
-
-    drag(drop(ref));
-
     if (editing) {
         return (
-            <div ref={ref} className={classes(cl("bar-chip"), cl("bar-chip-editing"))}>
+            <div className={classes(cl("bar-chip"), cl("bar-chip-editing"))} data-bid={bookmark.id}>
                 <input
                     className={cl("bar-input")}
                     value={draft}
@@ -98,15 +73,21 @@ function QuickBarChip({ bookmark, index, editing, startRename, stopRename }: {
 
     return (
         <div
-            ref={ref}
-            className={classes(
-                cl("bar-chip"),
-                isDragging && cl("bar-chip-dragging"),
-                isOver && cl("bar-chip-over")
-            )}
+            className={classes(cl("bar-chip"), dragging && cl("bar-chip-dragging"))}
+            data-bid={bookmark.id}
             role="button"
             tabIndex={0}
-            onClick={() => navigateToView(view)}
+            onPointerDown={e => {
+                if (e.button !== 0) return;
+                onDragStart(e, bookmark);
+            }}
+            onClick={() => {
+                if (Date.now() < suppressClickUntil) {
+                    suppressClickUntil = 0;
+                    return;
+                }
+                navigateToView(view);
+            }}
             onKeyDown={e => {
                 if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
@@ -136,8 +117,9 @@ function QuickBarChip({ bookmark, index, editing, startRename, stopRename }: {
 /**
  * A ChannelTabs-style bar shown at the top of the chat, right below the
  * channel header. Each bookmark is a clickable chip: click to jump,
- * right-click for the menu, drag to reorder. The star chip bookmarks
- * (or unbookmarks) the view you're currently in.
+ * right-click for the menu, drag to reorder. Reordering is pointer-event
+ * based (no react-dnd), so it works anywhere in Discord's tree without
+ * needing a DndProvider — which is also why it can't silently crash.
  */
 export default function QuickBar() {
     const { quickBar } = settings.use(["quickBar"]);
@@ -147,6 +129,16 @@ export default function QuickBar() {
     const bookmarked = view ? isViewBookmarked(view) : false;
 
     const [editingId, setEditingId] = useState<string | null>(null);
+    const [draggingId, setDraggingId] = useState<string | null>(null);
+
+    const scrollerRef = useRef<HTMLDivElement>(null);
+    const dragState = useRef<{
+        pointerId: number;
+        startX: number;
+        bookmarkId: string;
+        index: number;
+        active: boolean;
+    } | null>(null);
 
     const forceUpdate = useForceUpdater();
 
@@ -161,11 +153,70 @@ export default function QuickBar() {
         };
     }, []);
 
+    // global pointer listeners while a drag session is live
+    useEffect(() => {
+        if (!draggingId) return;
+
+        const onMove = (e: PointerEvent) => {
+            const s = dragState.current;
+            const scroller = scrollerRef.current;
+            if (!s || !scroller || e.pointerId !== s.pointerId) return;
+
+            if (!s.active) {
+                if (Math.abs(e.clientX - s.startX) < DRAG_THRESHOLD) return;
+                s.active = true;
+            }
+
+            e.preventDefault();
+
+            // find the chip under the pointer and live-reorder around it
+            const chips = Array.from(scroller.querySelectorAll<HTMLElement>(`.${cl("bar-chip")}[data-bid]`));
+            const hovered = chips.find(chip => {
+                const rect = chip.getBoundingClientRect();
+                return e.clientX >= rect.left && e.clientX <= rect.right;
+            });
+
+            if (!hovered || hovered.dataset.bid === s.bookmarkId) return;
+
+            const targetIndex = chips.indexOf(hovered);
+            if (targetIndex !== s.index) {
+                moveBookmarks(s.index, targetIndex);
+                s.index = targetIndex;
+            }
+        };
+
+        const onUp = (e: PointerEvent) => {
+            const s = dragState.current;
+            if (!s || e.pointerId !== s.pointerId) return;
+
+            if (s.active) {
+                // swallow the click that fires right after the drag
+                suppressClickUntil = Date.now() + 500;
+            }
+
+            dragState.current = null;
+            setDraggingId(null);
+            window.removeEventListener("pointermove", onMove);
+            window.removeEventListener("pointerup", onUp);
+            window.removeEventListener("pointercancel", onUp);
+        };
+
+        window.addEventListener("pointermove", onMove);
+        window.addEventListener("pointerup", onUp);
+        window.addEventListener("pointercancel", onUp);
+
+        return () => {
+            window.removeEventListener("pointermove", onMove);
+            window.removeEventListener("pointerup", onUp);
+            window.removeEventListener("pointercancel", onUp);
+        };
+    }, [draggingId]);
+
     if (!quickBar) return null;
 
     return (
         <div className={cl("bar")}>
-            <div className={cl("bar-scroller")}>
+            <div className={cl("bar-scroller")} ref={scrollerRef}>
                 {view && (
                     <Tooltip text={bookmarked ? "Remove bookmark for this view" : "Bookmark this view"}>
                         {({ onMouseEnter, onMouseLeave }) => (
@@ -185,10 +236,20 @@ export default function QuickBar() {
                     <QuickBarChip
                         key={bookmark.id}
                         bookmark={bookmark}
-                        index={index}
                         editing={editingId === bookmark.id}
+                        dragging={draggingId === bookmark.id}
                         startRename={() => setEditingId(bookmark.id)}
                         stopRename={() => setEditingId(null)}
+                        onDragStart={(e, bm) => {
+                            dragState.current = {
+                                pointerId: e.pointerId,
+                                startX: e.clientX,
+                                bookmarkId: bm.id,
+                                index,
+                                active: false
+                            };
+                            setDraggingId(bm.id);
+                        }}
                     />
                 ))}
             </div>

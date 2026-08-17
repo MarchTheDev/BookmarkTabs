@@ -18,16 +18,27 @@ import { settings } from "./util/constants";
 const BookmarkTabsAuthor = { name: "TheMarch88", id: 0n } as const;
 
 // Injects the bookmarks bar into the chat view, right after the channel
-// header (and before the messages). Verified against the live Discord
-// stable bundle (Aug 2026): the find string is unique to the Chat module.
+// header (and before the messages). Two replacement variants with a
+// `(?!$self)` guard so only the first one that matches ever applies:
+// the exact ternary used by stable, and a looser fallback that survives
+// minor differences in other Discord build channels (PTB / Canary).
 const ChatBarPatch = {
     find: "Missing channel in Channel.handleContextMenu",
-    replacement: {
-        // `showCall||showActivityPanel?null:this.renderHeaderBar(),`
-        match: /(\i\|\|\i\?null:this\.renderHeaderBar\(\),)/,
-        replace: "$1$self.renderBar(),"
-    }
+    replacement: [
+        {
+            // `showCall||showActivityPanel?null:this.renderHeaderBar(),`
+            match: /(\i\|\|\i\?null:this\.renderHeaderBar\(\),)(?!\$self)/,
+            replace: "$1$self.renderBar(),",
+            noWarn: true
+        },
+        {
+            match: /(this\.renderHeaderBar\(\),)(?!\$self)/,
+            replace: "$1$self.renderBar(),"
+        }
+    ]
 };
+
+let barMounted = false;
 
 export default definePlugin({
     name: "BookmarkTabs",
@@ -52,17 +63,38 @@ export default definePlugin({
     start() {
         // migrate away from settings of older versions
         const store = settings.store as any;
-        if (store.showBookmarkButton !== undefined) delete store.showBookmarkButton;
-        if (store.buttonSide !== undefined) delete store.buttonSide;
-        if (store.sidebarButton !== undefined) delete store.sidebarButton;
+        const cameFromOlderVersion =
+            store.showBookmarkButton !== undefined ||
+            store.buttonSide !== undefined ||
+            store.sidebarButton !== undefined;
+
+        delete store.showBookmarkButton;
+        delete store.buttonSide;
+        delete store.sidebarButton;
+
+        // The bar used to be an optional extra; it's now the whole UI.
+        // For people upgrading, reset the stale value so the new default
+        // (enabled) applies. Their own toggle still works afterwards.
+        if (cameFromOlderVersion) delete store.quickBar;
+
+        BookmarkTabsUtils.logger.info(
+            "BookmarkTabs started. quickBar =",
+            settings.store.quickBar,
+            "| unreadBadges =",
+            settings.store.unreadBadges
+        );
 
         BookmarkTabsUtils.init();
     },
 
     // Rendered right below the channel header (see ChatBarPatch)
     renderBar() {
+        if (!barMounted) {
+            barMounted = true;
+            BookmarkTabsUtils.logger.info("BookmarkTabs bar mounted — patch is working");
+        }
         return (
-            <ErrorBoundary>
+            <ErrorBoundary onError={({ error }) => BookmarkTabsUtils.logger.error("BookmarkTabs bar crashed:", error)}>
                 <QuickBar />
             </ErrorBoundary>
         );

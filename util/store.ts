@@ -45,6 +45,13 @@ async function persist() {
     }
 }
 
+// debounce so fast operations (like live drag reordering) don't spam DataStore
+let persistTimeout: NodeJS.Timeout | undefined;
+function persistDebounced() {
+    clearTimeout(persistTimeout);
+    persistTimeout = setTimeout(() => void persist(), 300);
+}
+
 async function load() {
     const user = UserStore.getCurrentUser();
     if (!user) return;
@@ -114,7 +121,7 @@ export function moveBookmarks(fromIndex: number, toIndex: number) {
     bookmarks.splice(toIndex, 0, moved);
 
     notify();
-    void persist();
+    persistDebounced();
 }
 
 /** Bookmark or un-bookmark the given view */
