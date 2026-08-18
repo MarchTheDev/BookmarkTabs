@@ -72,6 +72,11 @@ export const settings = definePluginSettings({
             { label: "Right", value: "right" }
         ]
     },
+    dmStatusIndicators: {
+        type: OptionType.BOOLEAN,
+        description: "Show online/idle/DND status on bookmarked DMs",
+        default: true
+    },
     unreadBadges: {
         type: OptionType.BOOLEAN,
         description: "Show unread (blue) and mention (red) indicators on bookmarks",
