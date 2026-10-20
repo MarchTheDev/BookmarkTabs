@@ -243,7 +243,7 @@ export default function QuickBar() {
     ) : null;
 
     return (
-        <div className={cl("bar")} style={{ "--bt-bar-height": `${barHeight}px` } as CSSProperties}>
+        <div className={cl("bar")} style={{ "--bt-bar-height": `${barHeight}px`, position: "sticky", top: 0, zIndex: 999, background: "inherit" } as CSSProperties}>
             {starPosition !== "right" && starChip}
             <div className={cl("bar-scroller")} ref={scrollerRef}>
                 {bookmarks.map((bookmark, index) => (

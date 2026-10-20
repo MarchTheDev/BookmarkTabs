@@ -61,7 +61,8 @@ export default definePlugin({
         "channel-mention-context": channelContextMenuPatch,
         "user-context": channelContextMenuPatch,
         "gdm-context": channelContextMenuPatch,
-        "guild-context": guildContextMenuPatch
+        "guild-context": guildContextMenuPatch,
+        "thread-context": channelContextMenuPatch
     },
 
     patches: [AppViewPatch],

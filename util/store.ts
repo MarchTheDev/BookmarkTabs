@@ -5,7 +5,7 @@
  */
 
 import { DataStore } from "@api/index";
-import { FluxDispatcher, showToast, Toasts, useEffect, UserStore, useState } from "@webpack/common";
+import { FluxDispatcher, showToast, useEffect, UserStore, useState } from "@webpack/common";
 
 import { DATA_KEY, logger } from "./constants";
 import { Bookmark, View } from "./types";
@@ -88,7 +88,7 @@ export async function addBookmark(view: View, customName?: string): Promise<bool
     bookmarks = [...bookmarks, bookmark];
     notify();
     void persist();
-    showToast(`Bookmarked ${bookmark.name || getViewName(view)}`, Toasts.Type.SUCCESS);
+    showToast(`Bookmarked ${bookmark.name || getViewName(view)}`);
     return true;
 }
 
@@ -100,7 +100,7 @@ export async function removeBookmark(view: View): Promise<boolean> {
     bookmarks = next;
     notify();
     void persist();
-    showToast("Bookmark removed", Toasts.Type.MESSAGE);
+    showToast("Bookmark removed");
     return true;
 }
 
