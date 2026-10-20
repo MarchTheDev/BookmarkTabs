@@ -34,15 +34,15 @@ function pushMenuItem(children: Array<ReactElement | null>, item: ReactElement, 
     }
 }
 
-/** Right-click on a channel / DM / group chat / mention */
-export const channelContextMenuPatch: NavContextMenuPatchCallback = (children, props: { channel?: Channel; }) => {
-    const { channel } = props;
-    if (!channel) return;
+/** Right-click on a channel / DM / group chat / mention / thread */
+export const channelContextMenuPatch: NavContextMenuPatchCallback = (children, props) => {
+    const target = (props as any)?.channel ?? (props as any)?.thread;
+    if (!target) return;
 
     const view: View = {
         kind: "channel",
-        guildId: channel.guild_id ?? "@me",
-        channelId: channel.id
+        guildId: target.guild_id ?? "@me",
+        channelId: target.id
     };
 
     pushMenuItem(children, bookmarkMenuItem(view), "channel-copy-link");
